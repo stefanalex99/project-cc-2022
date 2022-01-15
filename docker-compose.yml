@@ -1,0 +1,142 @@
+version: '2'
+services:
+    user_interaction:
+        build: './user_interaction'
+        depends_on:
+            - auth
+            - zoom_component
+            - broker
+        restart: unless-stopped
+        ports:
+            - "8050:8050"
+        networks:
+            - auth_network
+            - zoom_network
+            - rabbitmq_network
+
+    auth:
+        build: './auth'
+        depends_on:
+            - database_manager
+        restart: unless-stopped
+        environment:
+            JWT_SECRET: /run/secrets/jwt_secret
+        secrets:
+            - jwt_secret
+        ports:
+            - "8040:8040"
+        networks:
+            - auth_network
+            - db_manager_network
+
+    zoom_component:
+        build: './zoom_component'
+        depends_on:
+            - database_manager
+            - broker
+        restart: unless-stopped
+        environment:
+            API_KEY:  /run/secrets/zoom_key
+            API_SECRET: /run/secrets/zoom_secret
+        secrets:
+            - zoom_secret
+            - zoom_key
+        ports:
+            - "8020:8020"
+        networks:
+            - zoom_network
+            - db_manager_network
+            - rabbitmq_network
+
+    broker:
+        image: rabbitmq:3.9-management
+        restart: always
+        ports:
+            - 5672:5672
+            - 15672:15672
+        volumes:
+            - broker_data:/var/lib/rabbitmq/
+            - broker_logs:/var/log/rabbitmq
+        networks:
+            - rabbitmq_network
+
+    database_manager:
+        build: './database_manager'
+        depends_on:
+            - mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: 'medical'
+            MYSQL_USER_FILE: /run/secrets/db_user_secret
+            MYSQL_PASSWORD_FILE: /run/secrets/db_password_secret
+            # MYSQL_USER: 'user'
+            # MYSQL_PASSWORD: 'password'
+            MYSQL_HOSTNAME: 'mysql'
+            MYSQL_PORT: 3306
+        secrets:
+            - db_user_secret
+            - db_password_secret
+        ports:
+            - "8010:8010"
+        networks:
+            - db_manager_network
+
+    mysql:
+        image: mysql:5.7
+        restart: always
+        volumes:
+            - ./init.sql:/docker-entrypoint-initdb.d/schema.sql
+            - mysqldata:/var/lib/mysql
+        environment:
+            MYSQL_DATABASE: 'medical'
+            MYSQL_USER_FILE: /run/secrets/db_user_secret
+            MYSQL_PASSWORD_FILE: /run/secrets/db_password_secret
+            MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_secret
+        secrets:
+            - db_user_secret
+            - db_password_secret
+            - db_root_secret
+        ports:
+            - "3306:3306"
+        networks:
+            - db_utility_network
+            - db_manager_network
+
+    adminer:
+        depends_on:
+            - mysql
+        image: adminer
+        restart: always
+        ports:
+            - "8080:8080"
+        environment:
+            ADMINER_DEFAULT_SERVER: mysql
+        networks:
+            - db_utility_network
+
+
+networks:
+    db_utility_network:
+    db_manager_network:
+    auth_network:
+    zoom_network:
+    rabbitmq_network:
+
+volumes:
+    mysqldata: {}
+    broker_data: {}
+    broker_logs: {}
+
+secrets:
+    db_user_secret:
+        file: ./secrets/db_user.txt
+    db_password_secret:
+        file: ./secrets/db_password.txt
+    db_root_secret:
+        file: ./secrets/db_root.txt
+    jwt_secret:
+        file: ./secrets/jwt.txt
+    zoom_key:
+        file: ./secrets/zoom_key.txt
+    zoom_secret:
+        file: ./secrets/zoom_secret.txt

@@ -1,0 +1,4 @@
+flask
+pyzoom
+requests
+pika

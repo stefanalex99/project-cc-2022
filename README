@@ -1,0 +1,58 @@
+####################################
+Proiect Cloud Computing 2021-2022  #
+####################################
+
+
+=== Echipa ===
+Anghel Ionut-Petrisor SSA1-A
+Hermeniuc Stefan-Alexandru SSA1-B
+Stefan Adrian-Daniel SSA1-B
+
+=== Descriere ===
+-> aplicatie pentru programari consultatii medicale;
+-> baza de date - MySQL;
+-> componenta suport pentru gestionarea bazei de date - Adminer;
+-> microservicii:
+	- user_interaction;
+	- auth;
+	- zoom_component - expune un API pentru client (ZoomClient)
+-> flow:
+	* register -> utilizatorul isi creeaza un cont;
+	* login -> utilizatorul se autentifica si primeste un token. Acesta este
+necesar pentru a putea stabili o sesiune de meeting pe zoom;
+	* schedule_meeting -> se da json-ul corespunzator (username si token) si
+se returneaza un link si o parola pentru aderarea la meeting. Utilizatorul poate
+programa sau anula o consultatie vorbind direct cu un operator sau poate cere 
+informatii legate de alte programari; 
+
+=== Structura ===
+── auth
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── src
+│       └── auth.py
+├── database_manager - serviciu de conectare la baza de date si adaugare useri
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── src
+│       └── database_manager.py
+├── docker-stack.yml - fisier de configurare pentru docker
+├── init.sql - creeaza tabela users in baza de date MySQL
+├── README
+├── secrets -> credentiale pentru datele sensibile (baza de date, API)
+│   ├── db_password.txt
+│   ├── db_root.txt
+│   ├── db_user.txt
+│   ├── jwt.txt
+│   ├── zoom_key.txt
+│   └── zoom_secret.txt
+├── user_interaction
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── src
+│       └── user_interaction.py
+└── zoom_component
+    ├── Dockerfile
+    ├── requirements.txt
+    └── src
+        └── meeting_scheduler.py
