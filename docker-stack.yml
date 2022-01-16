@@ -92,8 +92,8 @@ services:
                 condition: on-failure
         environment:
             MYSQL_DATABASE: 'medical'
-            MYSQL_USER: /run/secrets/db_user_secret
-            MYSQL_PASSWORD: /run/secrets/db_password_secret
+            MYSQL_USER_FILE: /run/secrets/db_user_secret
+            MYSQL_PASSWORD_FILE: /run/secrets/db_password_secret
             MYSQL_HOSTNAME: 'mysql'
             MYSQL_PORT: 3306
         secrets:
